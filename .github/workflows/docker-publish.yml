@@ -1,0 +1,39 @@
+name: Build and publish Docker image
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_BUILDKIT: 1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Compute image tags
+        id: vars
+        run: |
+          DATE_TAG=$(date +'%y.%m.%d')
+          GIT_SHA=$(git rev-parse --short HEAD)
+          echo "date_tag=$DATE_TAG" >> $GITHUB_OUTPUT
+          echo "git_sha=$GIT_SHA" >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            eramosr19/mudblazor-mcp:${{ steps.vars.outputs.date_tag }}-${{ steps.vars.outputs.git_sha }}
+            eramosr19/mudblazor-mcp:latest
