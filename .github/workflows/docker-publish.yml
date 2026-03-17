@@ -8,6 +8,7 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment: prod
     env:
       DOCKER_BUILDKIT: 1
     steps:
